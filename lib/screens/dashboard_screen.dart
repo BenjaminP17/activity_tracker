@@ -1,0 +1,59 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../models/dashboard_stats.dart';
+import '../providers/dashboard_provider.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
+import '../widgets/stats_card.dart';
+
+/// Displays the active goal's progress: total km covered, km remaining, and
+/// the weekly average needed to reach the target on time.
+class DashboardScreen extends ConsumerWidget {
+  const DashboardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue<DashboardStats> stats = ref.watch(dashboardStatsProvider);
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(title: const Text('Mon défi')),
+      body: stats.when(
+        data: (DashboardStats value) => ListView(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          children: [
+            StatsCard(
+              title: 'Total parcouru',
+              value: '${value.totalKm.toStringAsFixed(1)} km',
+              icon: Icons.route,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            StatsCard(
+              title: 'Km restants',
+              value: '${value.remainingKm.toStringAsFixed(1)} km',
+              valueColor: AppColors.primary,
+              icon: Icons.flag,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            StatsCard(
+              title: 'Semaines restantes',
+              value: '${value.weeksRemaining}',
+              icon: Icons.calendar_today,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            StatsCard(
+              title: 'Moyenne hebdo requise',
+              value: '${value.weeklyAverageNeeded.toStringAsFixed(1)} km',
+              valueColor: AppColors.accent,
+              icon: Icons.trending_up,
+            ),
+          ],
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (Object error, StackTrace stackTrace) =>
+            Center(child: Text('Une erreur est survenue: $error')),
+      ),
+    );
+  }
+}
