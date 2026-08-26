@@ -6,6 +6,7 @@ import '../providers/dashboard_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/stats_card.dart';
+import 'add_run_screen.dart';
 
 /// Displays the active goal's progress: total km covered, km remaining, and
 /// the weekly average needed to reach the target on time.
@@ -19,6 +20,13 @@ class DashboardScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('Mon défi')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const AddRunScreen()),
+        ),
+        icon: const Icon(Icons.add),
+        label: const Text('Ajouter une activité'),
+      ),
       body: stats.when(
         data: (DashboardStats value) => ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
