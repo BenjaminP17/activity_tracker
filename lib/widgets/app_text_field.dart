@@ -17,6 +17,7 @@ class AppTextField extends StatelessWidget {
     this.enabled = true,
     this.keyboardType,
     this.onChanged,
+    this.onTap,
   });
 
   final TextEditingController? controller;
@@ -28,6 +29,7 @@ class AppTextField extends StatelessWidget {
   final bool enabled;
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
+  final VoidCallback? onTap;
 
   static const BorderRadius _borderRadius =
       BorderRadius.vertical(top: Radius.circular(8));
@@ -47,6 +49,10 @@ class AppTextField extends StatelessWidget {
       obscureText: obscureText,
       keyboardType: keyboardType,
       onChanged: onChanged,
+      onTap: onTap,
+      readOnly: onTap != null,
+      showCursor: onTap == null,
+      mouseCursor: onTap == null ? null : SystemMouseCursors.click,
       style: const TextStyle(fontSize: 14, color: AppColors.text),
       decoration: InputDecoration(
         labelText: label,

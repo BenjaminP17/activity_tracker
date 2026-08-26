@@ -3,26 +3,29 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../models/goal.dart';
+import '../models/run_entry.dart';
 import '../providers/goal_provider.dart';
+import '../providers/run_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_text_field.dart';
 
-/// Onboarding screen shown when the user has no active goal yet: lets them
-/// set a target distance and date to create their first challenge.
-class OnboardingScreen extends ConsumerStatefulWidget {
-  const OnboardingScreen({super.key});
+/// Screen used to log a new run: distance, date and optional notes, saved
+/// against the currently active goal.
+class AddRunScreen extends ConsumerStatefulWidget {
+  const AddRunScreen({super.key});
 
   @override
-  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<AddRunScreen> createState() => _AddRunScreenState();
 }
 
-class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+class _AddRunScreenState extends ConsumerState<AddRunScreen> {
   static final DateFormat _dateFormat = DateFormat('dd/MM/yyyy');
 
   final TextEditingController _kmController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
 
   DateTime? _selectedDate;
   String? _kmError;
@@ -33,6 +36,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void dispose() {
     _kmController.dispose();
     _dateController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -40,12 +44,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime now = DateTime.now();
-    final DateTime tomorrow = now.add(const Duration(days: 1));
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? tomorrow,
-      firstDate: tomorrow,
-      lastDate: DateTime(now.year + 10),
+      initialDate: _selectedDate ?? now,
+      firstDate: DateTime(now.year - 10),
+      lastDate: now,
     );
 
     if (picked == null) {
@@ -70,8 +73,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _dateError = date == null
           ? 'Sélectionne une date'
           : (date.isAfter(todayDateOnly)
-              ? null
-              : 'La date doit être dans le futur');
+              ? 'La date ne peut pas être dans le futur'
+              : null);
     });
 
     return _kmError == null && _dateError == null;
@@ -84,23 +87,27 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     setState(() => _isSubmitting = true);
 
-    final DateTime now = DateTime.now();
-    final Goal goal = Goal(
-      id: now.millisecondsSinceEpoch,
-      targetKm: _parseKm()!,
-      targetDate: _selectedDate!,
-      isActive: true,
-      createdAt: now,
+    final Goal? goal = await ref.read(currentGoalProvider.future);
+    if (!mounted) {
+      return;
+    }
+    final String notes = _notesController.text.trim();
+    final RunEntry run = RunEntry(
+      id: DateTime.now().millisecondsSinceEpoch,
+      kilometers: _parseKm()!,
+      date: _selectedDate!,
+      notes: notes.isEmpty ? null : notes,
+      goalId: goal?.id,
     );
 
-    await ref.read(goalInsertProvider.notifier).insert(goal);
+    await ref.read(runInsertProvider.notifier).insert(run);
 
     if (!mounted) {
       return;
     }
     setState(() => _isSubmitting = false);
 
-    final Object? error = ref.read(goalInsertProvider).error;
+    final Object? error = ref.read(runInsertProvider).error;
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Une erreur est survenue, réessaie.')),
@@ -109,8 +116,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Défi créé avec succès !')),
+      const SnackBar(content: Text('Activité enregistrée avec succès !')),
     );
+    Navigator.of(context).pop();
   }
 
   @override
@@ -124,7 +132,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Créer mon défi',
+                'Enregistrer une activité',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
@@ -133,30 +141,36 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
               const SizedBox(height: AppSpacing.xs),
               const Text(
-                'Définis ton objectif de km et la date cible',
+                "Ajoute ta course d'aujourd'hui",
                 style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.lg),
               AppTextField(
                 controller: _kmController,
-                label: 'Objectif (km)',
-                hintText: '500',
+                label: 'Distance (km)',
+                hintText: '10.5',
                 errorText: _kmError,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
                 controller: _dateController,
-                label: 'Date cible',
+                label: 'Date',
                 hintText: 'JJ/MM/AAAA',
                 errorText: _dateError,
                 onTap: () => _selectDate(context),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AppTextField(
+                controller: _notesController,
+                label: 'Notes',
+                hintText: 'Notes (optionnel)',
               ),
               const SizedBox(height: AppSpacing.lg),
               SizedBox(
                 width: double.infinity,
                 child: AppButton(
-                  label: 'Créer le défi',
+                  label: 'Enregistrer',
                   size: AppButtonSize.large,
                   isLoading: _isSubmitting,
                   onPressed: _isSubmitting ? null : _submit,
