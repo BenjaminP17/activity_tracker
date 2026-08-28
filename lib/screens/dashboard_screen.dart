@@ -6,8 +6,10 @@ import '../models/dashboard_stats.dart';
 import '../providers/dashboard_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../widgets/app_button.dart';
 import '../widgets/stats_card.dart';
 import 'add_run_screen.dart';
+import 'run_history_screen.dart';
 
 /// Displays the active goal's progress: total km covered, km remaining, and
 /// the weekly average needed to reach the target on time.
@@ -72,6 +74,16 @@ class DashboardScreen extends ConsumerWidget {
               value: '${value.weeklyAverageNeeded.toStringAsFixed(1)} km',
               valueColor: AppColors.accent,
               icon: Icons.trending_up,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            AppButton(
+              label: "Voir l'historique",
+              variant: AppButtonVariant.outline,
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const RunHistoryScreen(),
+                ),
+              ),
             ),
           ],
         ),
