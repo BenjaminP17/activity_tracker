@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:activity_tracker/models/activity_type.dart';
 import 'package:activity_tracker/models/dashboard_stats.dart';
 import 'package:activity_tracker/models/goal.dart';
 import 'package:activity_tracker/models/run_entry.dart';
@@ -30,8 +31,10 @@ void main() {
   Goal buildGoal({required double targetKm, required DateTime targetDate}) =>
       Goal(
         id: 1,
+        name: 'Marathon Challenge',
         targetKm: targetKm,
         targetDate: targetDate,
+        activityType: ActivityType.running,
         isActive: true,
         createdAt: DateTime(2026, 1, 1),
       );

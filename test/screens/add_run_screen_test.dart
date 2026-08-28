@@ -1,3 +1,4 @@
+import 'package:activity_tracker/models/activity_type.dart';
 import 'package:activity_tracker/models/goal.dart';
 import 'package:activity_tracker/providers/providers.dart';
 import 'package:activity_tracker/screens/add_run_screen.dart';
@@ -14,8 +15,10 @@ void main() {
 
   Goal buildGoal() => Goal(
         id: 1,
+        name: 'Marathon Challenge',
         targetKm: 100,
         targetDate: DateTime.now().add(const Duration(days: 30)),
+        activityType: ActivityType.running,
         isActive: true,
         createdAt: DateTime.now(),
       );

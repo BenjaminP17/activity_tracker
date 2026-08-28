@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'models/goal.dart';
 import 'providers/goal_provider.dart';
-import 'screens/dashboard_screen.dart';
+import 'screens/goals_list_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
           return currentGoal.when(
             data: (Goal? goal) => goal == null
                 ? const OnboardingScreen()
-                : const DashboardScreen(),
+                : const GoalsListScreen(),
             loading: () => const _LoadingScreen(),
             error: (Object error, StackTrace stackTrace) =>
                 _ErrorScreen(error: error),

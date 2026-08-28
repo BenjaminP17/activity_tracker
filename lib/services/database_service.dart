@@ -9,7 +9,7 @@ class DatabaseService {
   static const _dbName = 'activity_tracker.db';
   static const _tableName = 'runs';
   static const _goalsTableName = 'goals';
-  static const _dbVersion = 2;
+  static const _dbVersion = 4;
 
   final String? _path;
   Database? _db;
@@ -30,11 +30,13 @@ class DatabaseService {
       onCreate: (db, _) async {
         await db.execute('''
           CREATE TABLE $_goalsTableName (
-            id         INTEGER PRIMARY KEY AUTOINCREMENT,
-            targetKm   REAL    NOT NULL,
-            targetDate TEXT    NOT NULL,
-            isActive   INTEGER NOT NULL,
-            createdAt  TEXT    NOT NULL
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            name         TEXT    NOT NULL,
+            targetKm     REAL    NOT NULL,
+            targetDate   TEXT    NOT NULL,
+            activityType TEXT    NOT NULL,
+            isActive     INTEGER NOT NULL,
+            createdAt    TEXT    NOT NULL
           )
         ''');
         await db.execute('''
@@ -60,6 +62,14 @@ class DatabaseService {
           ''');
           await db.execute(
             'ALTER TABLE $_tableName ADD COLUMN goalId INTEGER REFERENCES $_goalsTableName (id)',
+          );
+        }
+        if (oldVersion < 4) {
+          await db.execute(
+            "ALTER TABLE $_goalsTableName ADD COLUMN name TEXT NOT NULL DEFAULT ''",
+          );
+          await db.execute(
+            "ALTER TABLE $_goalsTableName ADD COLUMN activityType TEXT NOT NULL DEFAULT 'running'",
           );
         }
       },

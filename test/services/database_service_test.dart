@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' show join;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'package:activity_tracker/models/activity_type.dart';
 import 'package:activity_tracker/models/goal.dart';
 import 'package:activity_tracker/services/database_service.dart';
 import 'package:activity_tracker/services/goal_service.dart';
@@ -25,8 +29,10 @@ void main() {
 
   Goal buildGoal({bool isActive = false}) => Goal(
         id: 0,
+        name: 'Marathon Challenge',
         targetKm: 100,
         targetDate: DateTime(2026, 12, 31),
+        activityType: ActivityType.running,
         isActive: isActive,
         createdAt: DateTime(2026, 1, 1),
       );
@@ -92,6 +98,72 @@ void main() {
         goals.firstWhere((Goal goal) => goal.id == first.id).isActive,
         isFalse,
       );
+    });
+  });
+
+  group('DatabaseService migration v3 -> v4', () {
+    late String dbPath;
+
+    setUp(() {
+      dbPath = join(
+        Directory.systemTemp.path,
+        'migration_test_${DateTime.now().microsecondsSinceEpoch}.db',
+      );
+    });
+
+    tearDown(() async {
+      final File file = File(dbPath);
+      if (file.existsSync()) {
+        file.deleteSync();
+      }
+    });
+
+    test('adds name and activityType columns with sensible defaults',
+        () async {
+      final Database legacyDb = await openDatabase(
+        dbPath,
+        version: 3,
+        onCreate: (db, _) async {
+          await db.execute('''
+            CREATE TABLE goals (
+              id         INTEGER PRIMARY KEY AUTOINCREMENT,
+              targetKm   REAL    NOT NULL,
+              targetDate TEXT    NOT NULL,
+              isActive   INTEGER NOT NULL,
+              createdAt  TEXT    NOT NULL
+            )
+          ''');
+          await db.execute('''
+            CREATE TABLE runs (
+              id        INTEGER PRIMARY KEY AUTOINCREMENT,
+              kilometers REAL    NOT NULL,
+              date      TEXT    NOT NULL,
+              notes     TEXT,
+              goalId    INTEGER REFERENCES goals (id)
+            )
+          ''');
+        },
+      );
+      final int legacyId = await legacyDb.insert('goals', {
+        'targetKm': 100.0,
+        'targetDate': DateTime(2026, 12, 31).toIso8601String(),
+        'isActive': 1,
+        'createdAt': DateTime(2026, 1, 1).toIso8601String(),
+      });
+      await legacyDb.close();
+
+      final DatabaseService migratedService = DatabaseService(path: dbPath);
+      final GoalService migratedGoalService = GoalService(migratedService);
+
+      final List<Goal> goals = await migratedGoalService.getAll();
+
+      expect(goals, hasLength(1));
+      expect(goals.single.id, legacyId);
+      expect(goals.single.name, isEmpty);
+      expect(goals.single.activityType, ActivityType.running);
+      expect(goals.single.targetKm, 100);
+
+      await migratedService.close();
     });
   });
 }

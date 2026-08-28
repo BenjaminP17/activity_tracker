@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../models/activity_type.dart';
 import '../models/goal.dart';
 import '../providers/goal_provider.dart';
 import '../theme/app_colors.dart';
@@ -21,16 +22,21 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   static final DateFormat _dateFormat = DateFormat('dd/MM/yyyy');
 
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _kmController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
 
+  final ActivityType _activityType = ActivityType.running;
+
   DateTime? _selectedDate;
+  String? _nameError;
   String? _kmError;
   String? _dateError;
   bool _isSubmitting = false;
 
   @override
   void dispose() {
+    _nameController.dispose();
     _kmController.dispose();
     _dateController.dispose();
     super.dispose();
@@ -59,12 +65,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   bool _validate() {
+    final String name = _nameController.text.trim();
     final double? km = _parseKm();
     final DateTime? date = _selectedDate;
     final DateTime today = DateTime.now();
     final DateTime todayDateOnly = DateTime(today.year, today.month, today.day);
 
     setState(() {
+      _nameError = name.isEmpty ? 'Entre un nom pour ton défi' : null;
       _kmError =
           (km == null || km <= 0) ? 'Entre un nombre de km supérieur à 0' : null;
       _dateError = date == null
@@ -74,7 +82,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               : 'La date doit être dans le futur');
     });
 
-    return _kmError == null && _dateError == null;
+    return _nameError == null && _kmError == null && _dateError == null;
   }
 
   Future<void> _submit() async {
@@ -87,8 +95,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final DateTime now = DateTime.now();
     final Goal goal = Goal(
       id: now.millisecondsSinceEpoch,
+      name: _nameController.text.trim(),
       targetKm: _parseKm()!,
       targetDate: _selectedDate!,
+      activityType: _activityType,
       isActive: true,
       createdAt: now,
     );
@@ -137,6 +147,29 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.lg),
+              AppTextField(
+                controller: _nameController,
+                label: 'Nom du défi',
+                hintText: 'Marathon Challenge',
+                errorText: _nameError,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              const Text(
+                'Type d\'activité',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              ChoiceChip(
+                avatar: _activityType.toIcon(),
+                label: Text(_activityType.toLabel()),
+                selected: true,
+                onSelected: (_) {},
+              ),
+              const SizedBox(height: AppSpacing.md),
               AppTextField(
                 controller: _kmController,
                 label: 'Objectif (km)',

@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
+import '../models/activity_type.dart';
 import '../models/goal.dart';
 import 'database_service.dart';
 
@@ -64,16 +65,20 @@ class GoalService {
   }
 
   Map<String, dynamic> _toRow(Goal goal) => {
+        'name': goal.name,
         'targetKm': goal.targetKm,
         'targetDate': goal.targetDate.toIso8601String(),
+        'activityType': goal.activityType.name,
         'isActive': goal.isActive ? 1 : 0,
         'createdAt': goal.createdAt.toIso8601String(),
       };
 
   Goal _fromRow(Map<String, Object?> row) => Goal(
         id: row['id'] as int,
+        name: row['name'] as String,
         targetKm: row['targetKm'] as double,
         targetDate: DateTime.parse(row['targetDate'] as String),
+        activityType: ActivityType.values.byName(row['activityType'] as String),
         isActive: (row['isActive'] as int) == 1,
         createdAt: DateTime.parse(row['createdAt'] as String),
       );
