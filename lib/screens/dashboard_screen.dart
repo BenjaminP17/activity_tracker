@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../models/dashboard_stats.dart';
 import '../providers/dashboard_provider.dart';
@@ -12,6 +13,8 @@ import 'add_run_screen.dart';
 /// the weekly average needed to reach the target on time.
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
+
+  static final DateFormat _dateFormat = DateFormat('dd/MM/yyyy');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,6 +34,20 @@ class DashboardScreen extends ConsumerWidget {
         data: (DashboardStats value) => ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
+            StatsCard(
+              title: 'Objectif visé',
+              value: '${value.targetKm.toStringAsFixed(1)} km',
+              icon: Icons.emoji_events,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            StatsCard(
+              title: 'Date limite',
+              value: value.targetDate == null
+                  ? '—'
+                  : _dateFormat.format(value.targetDate!),
+              icon: Icons.event,
+            ),
+            const SizedBox(height: AppSpacing.sm),
             StatsCard(
               title: 'Total parcouru',
               value: '${value.totalKm.toStringAsFixed(1)} km',

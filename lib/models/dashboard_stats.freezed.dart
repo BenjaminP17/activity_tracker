@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DashboardStats {
 
- double get totalKm; double get remainingKm; int get weeksRemaining; double get weeklyAverageNeeded; bool get goalCompleted; double get progressPercent;
+ double get totalKm; double get remainingKm; int get weeksRemaining; double get weeklyAverageNeeded; bool get goalCompleted; double get progressPercent; double get targetKm; DateTime? get targetDate;
 /// Create a copy of DashboardStats
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $DashboardStatsCopyWith<DashboardStats> get copyWith => _$DashboardStatsCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DashboardStats&&(identical(other.totalKm, totalKm) || other.totalKm == totalKm)&&(identical(other.remainingKm, remainingKm) || other.remainingKm == remainingKm)&&(identical(other.weeksRemaining, weeksRemaining) || other.weeksRemaining == weeksRemaining)&&(identical(other.weeklyAverageNeeded, weeklyAverageNeeded) || other.weeklyAverageNeeded == weeklyAverageNeeded)&&(identical(other.goalCompleted, goalCompleted) || other.goalCompleted == goalCompleted)&&(identical(other.progressPercent, progressPercent) || other.progressPercent == progressPercent));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DashboardStats&&(identical(other.totalKm, totalKm) || other.totalKm == totalKm)&&(identical(other.remainingKm, remainingKm) || other.remainingKm == remainingKm)&&(identical(other.weeksRemaining, weeksRemaining) || other.weeksRemaining == weeksRemaining)&&(identical(other.weeklyAverageNeeded, weeklyAverageNeeded) || other.weeklyAverageNeeded == weeklyAverageNeeded)&&(identical(other.goalCompleted, goalCompleted) || other.goalCompleted == goalCompleted)&&(identical(other.progressPercent, progressPercent) || other.progressPercent == progressPercent)&&(identical(other.targetKm, targetKm) || other.targetKm == targetKm)&&(identical(other.targetDate, targetDate) || other.targetDate == targetDate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,totalKm,remainingKm,weeksRemaining,weeklyAverageNeeded,goalCompleted,progressPercent);
+int get hashCode => Object.hash(runtimeType,totalKm,remainingKm,weeksRemaining,weeklyAverageNeeded,goalCompleted,progressPercent,targetKm,targetDate);
 
 @override
 String toString() {
-  return 'DashboardStats(totalKm: $totalKm, remainingKm: $remainingKm, weeksRemaining: $weeksRemaining, weeklyAverageNeeded: $weeklyAverageNeeded, goalCompleted: $goalCompleted, progressPercent: $progressPercent)';
+  return 'DashboardStats(totalKm: $totalKm, remainingKm: $remainingKm, weeksRemaining: $weeksRemaining, weeklyAverageNeeded: $weeklyAverageNeeded, goalCompleted: $goalCompleted, progressPercent: $progressPercent, targetKm: $targetKm, targetDate: $targetDate)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $DashboardStatsCopyWith<$Res>  {
   factory $DashboardStatsCopyWith(DashboardStats value, $Res Function(DashboardStats) _then) = _$DashboardStatsCopyWithImpl;
 @useResult
 $Res call({
- double totalKm, double remainingKm, int weeksRemaining, double weeklyAverageNeeded, bool goalCompleted, double progressPercent
+ double totalKm, double remainingKm, int weeksRemaining, double weeklyAverageNeeded, bool goalCompleted, double progressPercent, double targetKm, DateTime? targetDate
 });
 
 
@@ -66,7 +66,7 @@ class _$DashboardStatsCopyWithImpl<$Res>
 
 /// Create a copy of DashboardStats
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? totalKm = null,Object? remainingKm = null,Object? weeksRemaining = null,Object? weeklyAverageNeeded = null,Object? goalCompleted = null,Object? progressPercent = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? totalKm = null,Object? remainingKm = null,Object? weeksRemaining = null,Object? weeklyAverageNeeded = null,Object? goalCompleted = null,Object? progressPercent = null,Object? targetKm = null,Object? targetDate = freezed,}) {
   return _then(DashboardStats(
 totalKm: null == totalKm ? _self.totalKm : totalKm // ignore: cast_nullable_to_non_nullable
 as double,remainingKm: null == remainingKm ? _self.remainingKm : remainingKm // ignore: cast_nullable_to_non_nullable
@@ -74,7 +74,9 @@ as double,weeksRemaining: null == weeksRemaining ? _self.weeksRemaining : weeksR
 as int,weeklyAverageNeeded: null == weeklyAverageNeeded ? _self.weeklyAverageNeeded : weeklyAverageNeeded // ignore: cast_nullable_to_non_nullable
 as double,goalCompleted: null == goalCompleted ? _self.goalCompleted : goalCompleted // ignore: cast_nullable_to_non_nullable
 as bool,progressPercent: null == progressPercent ? _self.progressPercent : progressPercent // ignore: cast_nullable_to_non_nullable
-as double,
+as double,targetKm: null == targetKm ? _self.targetKm : targetKm // ignore: cast_nullable_to_non_nullable
+as double,targetDate: freezed == targetDate ? _self.targetDate : targetDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -159,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double totalKm,  double remainingKm,  int weeksRemaining,  double weeklyAverageNeeded,  bool goalCompleted,  double progressPercent)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double totalKm,  double remainingKm,  int weeksRemaining,  double weeklyAverageNeeded,  bool goalCompleted,  double progressPercent,  double targetKm,  DateTime? targetDate)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DashboardStats() when $default != null:
-return $default(_that.totalKm,_that.remainingKm,_that.weeksRemaining,_that.weeklyAverageNeeded,_that.goalCompleted,_that.progressPercent);case _:
+return $default(_that.totalKm,_that.remainingKm,_that.weeksRemaining,_that.weeklyAverageNeeded,_that.goalCompleted,_that.progressPercent,_that.targetKm,_that.targetDate);case _:
   return orElse();
 
 }
@@ -180,10 +182,10 @@ return $default(_that.totalKm,_that.remainingKm,_that.weeksRemaining,_that.weekl
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double totalKm,  double remainingKm,  int weeksRemaining,  double weeklyAverageNeeded,  bool goalCompleted,  double progressPercent)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double totalKm,  double remainingKm,  int weeksRemaining,  double weeklyAverageNeeded,  bool goalCompleted,  double progressPercent,  double targetKm,  DateTime? targetDate)  $default,) {final _that = this;
 switch (_that) {
 case _DashboardStats():
-return $default(_that.totalKm,_that.remainingKm,_that.weeksRemaining,_that.weeklyAverageNeeded,_that.goalCompleted,_that.progressPercent);case _:
+return $default(_that.totalKm,_that.remainingKm,_that.weeksRemaining,_that.weeklyAverageNeeded,_that.goalCompleted,_that.progressPercent,_that.targetKm,_that.targetDate);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +202,10 @@ return $default(_that.totalKm,_that.remainingKm,_that.weeksRemaining,_that.weekl
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double totalKm,  double remainingKm,  int weeksRemaining,  double weeklyAverageNeeded,  bool goalCompleted,  double progressPercent)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double totalKm,  double remainingKm,  int weeksRemaining,  double weeklyAverageNeeded,  bool goalCompleted,  double progressPercent,  double targetKm,  DateTime? targetDate)?  $default,) {final _that = this;
 switch (_that) {
 case _DashboardStats() when $default != null:
-return $default(_that.totalKm,_that.remainingKm,_that.weeksRemaining,_that.weeklyAverageNeeded,_that.goalCompleted,_that.progressPercent);case _:
+return $default(_that.totalKm,_that.remainingKm,_that.weeksRemaining,_that.weeklyAverageNeeded,_that.goalCompleted,_that.progressPercent,_that.targetKm,_that.targetDate);case _:
   return null;
 
 }
@@ -215,7 +217,7 @@ return $default(_that.totalKm,_that.remainingKm,_that.weeksRemaining,_that.weekl
 @JsonSerializable()
 
 class _DashboardStats implements DashboardStats {
-  const _DashboardStats({required this.totalKm, required this.remainingKm, required this.weeksRemaining, required this.weeklyAverageNeeded, required this.goalCompleted, required this.progressPercent});
+  const _DashboardStats({required this.totalKm, required this.remainingKm, required this.weeksRemaining, required this.weeklyAverageNeeded, required this.goalCompleted, required this.progressPercent, required this.targetKm, required this.targetDate});
   factory _DashboardStats.fromJson(Map<String, dynamic> json) => _$DashboardStatsFromJson(json);
 
 @override final  double totalKm;
@@ -224,6 +226,8 @@ class _DashboardStats implements DashboardStats {
 @override final  double weeklyAverageNeeded;
 @override final  bool goalCompleted;
 @override final  double progressPercent;
+@override final  double targetKm;
+@override final  DateTime? targetDate;
 
 /// Create a copy of DashboardStats
 /// with the given fields replaced by the non-null parameter values.
@@ -238,16 +242,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DashboardStats&&(identical(other.totalKm, totalKm) || other.totalKm == totalKm)&&(identical(other.remainingKm, remainingKm) || other.remainingKm == remainingKm)&&(identical(other.weeksRemaining, weeksRemaining) || other.weeksRemaining == weeksRemaining)&&(identical(other.weeklyAverageNeeded, weeklyAverageNeeded) || other.weeklyAverageNeeded == weeklyAverageNeeded)&&(identical(other.goalCompleted, goalCompleted) || other.goalCompleted == goalCompleted)&&(identical(other.progressPercent, progressPercent) || other.progressPercent == progressPercent));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DashboardStats&&(identical(other.totalKm, totalKm) || other.totalKm == totalKm)&&(identical(other.remainingKm, remainingKm) || other.remainingKm == remainingKm)&&(identical(other.weeksRemaining, weeksRemaining) || other.weeksRemaining == weeksRemaining)&&(identical(other.weeklyAverageNeeded, weeklyAverageNeeded) || other.weeklyAverageNeeded == weeklyAverageNeeded)&&(identical(other.goalCompleted, goalCompleted) || other.goalCompleted == goalCompleted)&&(identical(other.progressPercent, progressPercent) || other.progressPercent == progressPercent)&&(identical(other.targetKm, targetKm) || other.targetKm == targetKm)&&(identical(other.targetDate, targetDate) || other.targetDate == targetDate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,totalKm,remainingKm,weeksRemaining,weeklyAverageNeeded,goalCompleted,progressPercent);
+int get hashCode => Object.hash(runtimeType,totalKm,remainingKm,weeksRemaining,weeklyAverageNeeded,goalCompleted,progressPercent,targetKm,targetDate);
 
 @override
 String toString() {
-  return 'DashboardStats(totalKm: $totalKm, remainingKm: $remainingKm, weeksRemaining: $weeksRemaining, weeklyAverageNeeded: $weeklyAverageNeeded, goalCompleted: $goalCompleted, progressPercent: $progressPercent)';
+  return 'DashboardStats(totalKm: $totalKm, remainingKm: $remainingKm, weeksRemaining: $weeksRemaining, weeklyAverageNeeded: $weeklyAverageNeeded, goalCompleted: $goalCompleted, progressPercent: $progressPercent, targetKm: $targetKm, targetDate: $targetDate)';
 }
 
 
@@ -258,7 +262,7 @@ abstract mixin class _$DashboardStatsCopyWith<$Res> implements $DashboardStatsCo
   factory _$DashboardStatsCopyWith(_DashboardStats value, $Res Function(_DashboardStats) _then) = __$DashboardStatsCopyWithImpl;
 @override @useResult
 $Res call({
- double totalKm, double remainingKm, int weeksRemaining, double weeklyAverageNeeded, bool goalCompleted, double progressPercent
+ double totalKm, double remainingKm, int weeksRemaining, double weeklyAverageNeeded, bool goalCompleted, double progressPercent, double targetKm, DateTime? targetDate
 });
 
 
@@ -275,7 +279,7 @@ class __$DashboardStatsCopyWithImpl<$Res>
 
 /// Create a copy of DashboardStats
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? totalKm = null,Object? remainingKm = null,Object? weeksRemaining = null,Object? weeklyAverageNeeded = null,Object? goalCompleted = null,Object? progressPercent = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? totalKm = null,Object? remainingKm = null,Object? weeksRemaining = null,Object? weeklyAverageNeeded = null,Object? goalCompleted = null,Object? progressPercent = null,Object? targetKm = null,Object? targetDate = freezed,}) {
   return _then(_DashboardStats(
 totalKm: null == totalKm ? _self.totalKm : totalKm // ignore: cast_nullable_to_non_nullable
 as double,remainingKm: null == remainingKm ? _self.remainingKm : remainingKm // ignore: cast_nullable_to_non_nullable
@@ -283,7 +287,9 @@ as double,weeksRemaining: null == weeksRemaining ? _self.weeksRemaining : weeksR
 as int,weeklyAverageNeeded: null == weeklyAverageNeeded ? _self.weeklyAverageNeeded : weeklyAverageNeeded // ignore: cast_nullable_to_non_nullable
 as double,goalCompleted: null == goalCompleted ? _self.goalCompleted : goalCompleted // ignore: cast_nullable_to_non_nullable
 as bool,progressPercent: null == progressPercent ? _self.progressPercent : progressPercent // ignore: cast_nullable_to_non_nullable
-as double,
+as double,targetKm: null == targetKm ? _self.targetKm : targetKm // ignore: cast_nullable_to_non_nullable
+as double,targetDate: freezed == targetDate ? _self.targetDate : targetDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

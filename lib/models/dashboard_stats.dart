@@ -12,6 +12,8 @@ abstract class DashboardStats with _$DashboardStats {
     required double weeklyAverageNeeded,
     required bool goalCompleted,
     required double progressPercent,
+    required double targetKm,
+    required DateTime? targetDate,
   }) = _DashboardStats;
 
   factory DashboardStats.fromJson(Map<String, dynamic> json) =>
@@ -25,5 +27,7 @@ abstract class DashboardStats with _$DashboardStats {
         weeklyAverageNeeded: 0,
         goalCompleted: false,
         progressPercent: 0,
+        targetKm: 0,
+        targetDate: null,
       );
 }
