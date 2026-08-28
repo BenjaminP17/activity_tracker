@@ -1,4 +1,5 @@
 import 'package:activity_tracker/main.dart';
+import 'package:activity_tracker/models/activity_type.dart';
 import 'package:activity_tracker/models/goal.dart';
 import 'package:activity_tracker/providers/providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,12 +24,14 @@ void main() {
     expect(find.text('Créer mon défi'), findsOneWidget);
   });
 
-  testWidgets('shows the dashboard when an active goal exists',
+  testWidgets('shows the goals list when an active goal exists',
       (WidgetTester tester) async {
     final Goal goal = Goal(
       id: 1,
+      name: 'Marathon Challenge',
       targetKm: 100,
       targetDate: DateTime.now().add(const Duration(days: 30)),
+      activityType: ActivityType.running,
       isActive: true,
       createdAt: DateTime.now(),
     );
@@ -45,6 +48,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Mon défi'), findsOneWidget);
+    expect(find.text('Mes défis'), findsOneWidget);
+    expect(find.text('Marathon Challenge'), findsOneWidget);
   });
 }

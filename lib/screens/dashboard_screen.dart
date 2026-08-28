@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../models/dashboard_stats.dart';
 import '../providers/dashboard_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../widgets/app_button.dart';
 import '../widgets/stats_card.dart';
 import 'add_run_screen.dart';
+import 'run_history_screen.dart';
 
 /// Displays the active goal's progress: total km covered, km remaining, and
 /// the weekly average needed to reach the target on time.
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
+
+  static final DateFormat _dateFormat = DateFormat('dd/MM/yyyy');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,6 +36,20 @@ class DashboardScreen extends ConsumerWidget {
         data: (DashboardStats value) => ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
+            StatsCard(
+              title: 'Objectif visé',
+              value: '${value.targetKm.toStringAsFixed(1)} km',
+              icon: Icons.emoji_events,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            StatsCard(
+              title: 'Date limite',
+              value: value.targetDate == null
+                  ? '—'
+                  : _dateFormat.format(value.targetDate!),
+              icon: Icons.event,
+            ),
+            const SizedBox(height: AppSpacing.sm),
             StatsCard(
               title: 'Total parcouru',
               value: '${value.totalKm.toStringAsFixed(1)} km',
@@ -55,6 +74,16 @@ class DashboardScreen extends ConsumerWidget {
               value: '${value.weeklyAverageNeeded.toStringAsFixed(1)} km',
               valueColor: AppColors.accent,
               icon: Icons.trending_up,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            AppButton(
+              label: "Voir l'historique",
+              variant: AppButtonVariant.outline,
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const RunHistoryScreen(),
+                ),
+              ),
             ),
           ],
         ),

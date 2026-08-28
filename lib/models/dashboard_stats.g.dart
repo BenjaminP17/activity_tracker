@@ -14,6 +14,10 @@ _DashboardStats _$DashboardStatsFromJson(Map<String, dynamic> json) =>
       weeklyAverageNeeded: (json['weeklyAverageNeeded'] as num).toDouble(),
       goalCompleted: json['goalCompleted'] as bool,
       progressPercent: (json['progressPercent'] as num).toDouble(),
+      targetKm: (json['targetKm'] as num).toDouble(),
+      targetDate: json['targetDate'] == null
+          ? null
+          : DateTime.parse(json['targetDate'] as String),
     );
 
 Map<String, dynamic> _$DashboardStatsToJson(_DashboardStats instance) =>
@@ -24,4 +28,6 @@ Map<String, dynamic> _$DashboardStatsToJson(_DashboardStats instance) =>
       'weeklyAverageNeeded': instance.weeklyAverageNeeded,
       'goalCompleted': instance.goalCompleted,
       'progressPercent': instance.progressPercent,
+      'targetKm': instance.targetKm,
+      'targetDate': instance.targetDate?.toIso8601String(),
     };

@@ -57,6 +57,8 @@ DashboardStats _computeStats(Goal goal, List<RunEntry> runs) {
     weeklyAverageNeeded: weeklyAverageNeeded,
     goalCompleted: remainingKm <= 0,
     progressPercent: progressPercent,
+    targetKm: goal.targetKm,
+    targetDate: goal.targetDate,
   );
 }
 
