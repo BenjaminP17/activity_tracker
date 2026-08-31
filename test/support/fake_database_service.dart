@@ -23,6 +23,13 @@ class FakeDatabaseService extends DatabaseService {
   Future<List<RunEntry>> getAll() async => List<RunEntry>.of(_runs);
 
   @override
+  Future<int> delete(int id) async {
+    final int before = _runs.length;
+    _runs.removeWhere((RunEntry run) => run.id == id);
+    return before - _runs.length;
+  }
+
+  @override
   Future<bool> existsByHealthConnectUuid(String uuid) async =>
       _runs.any((RunEntry run) => run.healthConnectUuid == uuid);
 }

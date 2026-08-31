@@ -4,17 +4,20 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 
 /// A reusable card matching the app's design system: surface background,
-/// a subtle shadow, and an opacity dip on touch when [onTap] is set.
+/// a subtle shadow, and an opacity dip on touch when [onTap] or
+/// [onLongPress] is set.
 class AppCard extends StatefulWidget {
   const AppCard({
     super.key,
     required this.child,
     this.onTap,
+    this.onLongPress,
     this.padding = const EdgeInsets.all(AppSpacing.md),
   });
 
   final Widget child;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
   final EdgeInsetsGeometry padding;
 
   @override
@@ -30,13 +33,18 @@ class _AppCardState extends State<AppCard> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isTappable = widget.onTap != null;
+    final bool isInteractive =
+        widget.onTap != null || widget.onLongPress != null;
 
     return GestureDetector(
       onTap: widget.onTap,
-      onTapDown: isTappable ? (_) => _setPressed(true) : null,
-      onTapUp: isTappable ? (_) => _setPressed(false) : null,
-      onTapCancel: isTappable ? () => _setPressed(false) : null,
+      onLongPress: widget.onLongPress,
+      onTapDown: isInteractive ? (_) => _setPressed(true) : null,
+      onTapUp: isInteractive ? (_) => _setPressed(false) : null,
+      onTapCancel: isInteractive ? () => _setPressed(false) : null,
+      onLongPressStart: isInteractive ? (_) => _setPressed(true) : null,
+      onLongPressEnd: isInteractive ? (_) => _setPressed(false) : null,
+      onLongPressCancel: isInteractive ? () => _setPressed(false) : null,
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 120),
         opacity: _isPressed ? 0.6 : 1,

@@ -16,6 +16,42 @@ class RunHistoryScreen extends ConsumerWidget {
 
   static final DateFormat _dateFormat = DateFormat('dd/MM/yyyy');
 
+  /// Asks for confirmation, then deletes [run] from the active goal.
+  Future<void> _confirmAndDelete(
+    BuildContext context,
+    WidgetRef ref,
+    RunEntry run,
+  ) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: const Text('Supprimer la course'),
+        content: Text(
+          'Supprimer la course du ${_dateFormat.format(run.date)} '
+          '(${run.kilometers.toStringAsFixed(1)} km) ?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text(
+              'Supprimer',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      return;
+    }
+    await ref.read(runDeleteProvider.notifier).delete(run.id);
+  }
+
   /// Runs belonging to [goal], most recent date first.
   List<RunEntry> _sortedRunsForGoal(List<RunEntry> runs, Goal? goal) {
     if (goal == null) {
@@ -70,9 +106,12 @@ class RunHistoryScreen extends ConsumerWidget {
                           separatorBuilder: (_, _) =>
                               const SizedBox(height: AppSpacing.md),
                           itemBuilder: (BuildContext context, int index) {
+                            final RunEntry run = sorted[index];
                             return _RunCard(
-                              run: sorted[index],
+                              run: run,
                               dateFormat: _dateFormat,
+                              onLongPress: () =>
+                                  _confirmAndDelete(context, ref, run),
                             );
                           },
                         ),
@@ -90,10 +129,15 @@ class RunHistoryScreen extends ConsumerWidget {
 }
 
 class _RunCard extends StatelessWidget {
-  const _RunCard({required this.run, required this.dateFormat});
+  const _RunCard({
+    required this.run,
+    required this.dateFormat,
+    required this.onLongPress,
+  });
 
   final RunEntry run;
   final DateFormat dateFormat;
+  final VoidCallback onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -101,6 +145,7 @@ class _RunCard extends StatelessWidget {
     final bool hasNotes = notes != null && notes.isNotEmpty;
 
     return AppCard(
+      onLongPress: onLongPress,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
