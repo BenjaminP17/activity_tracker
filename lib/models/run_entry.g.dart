@@ -12,6 +12,7 @@ _RunEntry _$RunEntryFromJson(Map<String, dynamic> json) => _RunEntry(
   date: DateTime.parse(json['date'] as String),
   notes: json['notes'] as String?,
   goalId: (json['goalId'] as num?)?.toInt(),
+  healthConnectUuid: json['healthConnectUuid'] as String?,
 );
 
 Map<String, dynamic> _$RunEntryToJson(_RunEntry instance) => <String, dynamic>{
@@ -20,4 +21,5 @@ Map<String, dynamic> _$RunEntryToJson(_RunEntry instance) => <String, dynamic>{
   'date': instance.date.toIso8601String(),
   'notes': instance.notes,
   'goalId': instance.goalId,
+  'healthConnectUuid': instance.healthConnectUuid,
 };
