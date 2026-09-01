@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$RunEntry {
 
- int get id; double get kilometers; DateTime get date; String? get notes; int? get goalId;
+ int get id; double get kilometers; DateTime get date; String? get notes; int? get goalId; String? get healthConnectUuid;
 /// Create a copy of RunEntry
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $RunEntryCopyWith<RunEntry> get copyWith => _$RunEntryCopyWithImpl<RunEntry>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RunEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.kilometers, kilometers) || other.kilometers == kilometers)&&(identical(other.date, date) || other.date == date)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.goalId, goalId) || other.goalId == goalId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RunEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.kilometers, kilometers) || other.kilometers == kilometers)&&(identical(other.date, date) || other.date == date)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.goalId, goalId) || other.goalId == goalId)&&(identical(other.healthConnectUuid, healthConnectUuid) || other.healthConnectUuid == healthConnectUuid));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,kilometers,date,notes,goalId);
+int get hashCode => Object.hash(runtimeType,id,kilometers,date,notes,goalId,healthConnectUuid);
 
 @override
 String toString() {
-  return 'RunEntry(id: $id, kilometers: $kilometers, date: $date, notes: $notes, goalId: $goalId)';
+  return 'RunEntry(id: $id, kilometers: $kilometers, date: $date, notes: $notes, goalId: $goalId, healthConnectUuid: $healthConnectUuid)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $RunEntryCopyWith<$Res>  {
   factory $RunEntryCopyWith(RunEntry value, $Res Function(RunEntry) _then) = _$RunEntryCopyWithImpl;
 @useResult
 $Res call({
- int id, double kilometers, DateTime date, String? notes, int? goalId
+ int id, double kilometers, DateTime date, String? notes, int? goalId, String? healthConnectUuid
 });
 
 
@@ -66,14 +66,15 @@ class _$RunEntryCopyWithImpl<$Res>
 
 /// Create a copy of RunEntry
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? kilometers = null,Object? date = null,Object? notes = freezed,Object? goalId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? kilometers = null,Object? date = null,Object? notes = freezed,Object? goalId = freezed,Object? healthConnectUuid = freezed,}) {
   return _then(RunEntry(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,kilometers: null == kilometers ? _self.kilometers : kilometers // ignore: cast_nullable_to_non_nullable
 as double,date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,goalId: freezed == goalId ? _self.goalId : goalId // ignore: cast_nullable_to_non_nullable
-as int?,
+as int?,healthConnectUuid: freezed == healthConnectUuid ? _self.healthConnectUuid : healthConnectUuid // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -158,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  double kilometers,  DateTime date,  String? notes,  int? goalId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  double kilometers,  DateTime date,  String? notes,  int? goalId,  String? healthConnectUuid)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RunEntry() when $default != null:
-return $default(_that.id,_that.kilometers,_that.date,_that.notes,_that.goalId);case _:
+return $default(_that.id,_that.kilometers,_that.date,_that.notes,_that.goalId,_that.healthConnectUuid);case _:
   return orElse();
 
 }
@@ -179,10 +180,10 @@ return $default(_that.id,_that.kilometers,_that.date,_that.notes,_that.goalId);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  double kilometers,  DateTime date,  String? notes,  int? goalId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  double kilometers,  DateTime date,  String? notes,  int? goalId,  String? healthConnectUuid)  $default,) {final _that = this;
 switch (_that) {
 case _RunEntry():
-return $default(_that.id,_that.kilometers,_that.date,_that.notes,_that.goalId);case _:
+return $default(_that.id,_that.kilometers,_that.date,_that.notes,_that.goalId,_that.healthConnectUuid);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +200,10 @@ return $default(_that.id,_that.kilometers,_that.date,_that.notes,_that.goalId);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  double kilometers,  DateTime date,  String? notes,  int? goalId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  double kilometers,  DateTime date,  String? notes,  int? goalId,  String? healthConnectUuid)?  $default,) {final _that = this;
 switch (_that) {
 case _RunEntry() when $default != null:
-return $default(_that.id,_that.kilometers,_that.date,_that.notes,_that.goalId);case _:
+return $default(_that.id,_that.kilometers,_that.date,_that.notes,_that.goalId,_that.healthConnectUuid);case _:
   return null;
 
 }
@@ -214,7 +215,7 @@ return $default(_that.id,_that.kilometers,_that.date,_that.notes,_that.goalId);c
 @JsonSerializable()
 
 class _RunEntry implements RunEntry {
-  const _RunEntry({required this.id, required this.kilometers, required this.date, this.notes, this.goalId});
+  const _RunEntry({required this.id, required this.kilometers, required this.date, this.notes, this.goalId, this.healthConnectUuid});
   factory _RunEntry.fromJson(Map<String, dynamic> json) => _$RunEntryFromJson(json);
 
 @override final  int id;
@@ -222,6 +223,7 @@ class _RunEntry implements RunEntry {
 @override final  DateTime date;
 @override final  String? notes;
 @override final  int? goalId;
+@override final  String? healthConnectUuid;
 
 /// Create a copy of RunEntry
 /// with the given fields replaced by the non-null parameter values.
@@ -236,16 +238,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RunEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.kilometers, kilometers) || other.kilometers == kilometers)&&(identical(other.date, date) || other.date == date)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.goalId, goalId) || other.goalId == goalId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RunEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.kilometers, kilometers) || other.kilometers == kilometers)&&(identical(other.date, date) || other.date == date)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.goalId, goalId) || other.goalId == goalId)&&(identical(other.healthConnectUuid, healthConnectUuid) || other.healthConnectUuid == healthConnectUuid));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,kilometers,date,notes,goalId);
+int get hashCode => Object.hash(runtimeType,id,kilometers,date,notes,goalId,healthConnectUuid);
 
 @override
 String toString() {
-  return 'RunEntry(id: $id, kilometers: $kilometers, date: $date, notes: $notes, goalId: $goalId)';
+  return 'RunEntry(id: $id, kilometers: $kilometers, date: $date, notes: $notes, goalId: $goalId, healthConnectUuid: $healthConnectUuid)';
 }
 
 
@@ -256,7 +258,7 @@ abstract mixin class _$RunEntryCopyWith<$Res> implements $RunEntryCopyWith<$Res>
   factory _$RunEntryCopyWith(_RunEntry value, $Res Function(_RunEntry) _then) = __$RunEntryCopyWithImpl;
 @override @useResult
 $Res call({
- int id, double kilometers, DateTime date, String? notes, int? goalId
+ int id, double kilometers, DateTime date, String? notes, int? goalId, String? healthConnectUuid
 });
 
 
@@ -273,14 +275,15 @@ class __$RunEntryCopyWithImpl<$Res>
 
 /// Create a copy of RunEntry
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? kilometers = null,Object? date = null,Object? notes = freezed,Object? goalId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? kilometers = null,Object? date = null,Object? notes = freezed,Object? goalId = freezed,Object? healthConnectUuid = freezed,}) {
   return _then(_RunEntry(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,kilometers: null == kilometers ? _self.kilometers : kilometers // ignore: cast_nullable_to_non_nullable
 as double,date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,goalId: freezed == goalId ? _self.goalId : goalId // ignore: cast_nullable_to_non_nullable
-as int?,
+as int?,healthConnectUuid: freezed == healthConnectUuid ? _self.healthConnectUuid : healthConnectUuid // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

@@ -9,7 +9,7 @@ class DatabaseService {
   static const _dbName = 'activity_tracker.db';
   static const _tableName = 'runs';
   static const _goalsTableName = 'goals';
-  static const _dbVersion = 4;
+  static const _dbVersion = 5;
 
   final String? _path;
   Database? _db;
@@ -45,9 +45,14 @@ class DatabaseService {
             kilometers REAL    NOT NULL,
             date      TEXT    NOT NULL,
             notes     TEXT,
-            goalId    INTEGER REFERENCES $_goalsTableName (id)
+            goalId    INTEGER REFERENCES $_goalsTableName (id),
+            healthConnectUuid TEXT
           )
         ''');
+        await db.execute(
+          'CREATE UNIQUE INDEX idx_${_tableName}_health_connect_uuid '
+          'ON $_tableName (healthConnectUuid)',
+        );
       },
       onUpgrade: (db, oldVersion, _) async {
         if (oldVersion < 2) {
@@ -72,6 +77,15 @@ class DatabaseService {
             "ALTER TABLE $_goalsTableName ADD COLUMN activityType TEXT NOT NULL DEFAULT 'running'",
           );
         }
+        if (oldVersion < 5) {
+          await db.execute(
+            'ALTER TABLE $_tableName ADD COLUMN healthConnectUuid TEXT',
+          );
+          await db.execute(
+            'CREATE UNIQUE INDEX idx_${_tableName}_health_connect_uuid '
+            'ON $_tableName (healthConnectUuid)',
+          );
+        }
       },
     );
   }
@@ -82,6 +96,19 @@ class DatabaseService {
     return entry.copyWith(id: id);
   }
 
+  /// Whether a run imported from Health Connect with this [uuid] has
+  /// already been inserted, so a sync can skip re-importing it.
+  Future<bool> existsByHealthConnectUuid(String uuid) async {
+    final db = await database;
+    final rows = await db.query(
+      _tableName,
+      where: 'healthConnectUuid = ?',
+      whereArgs: [uuid],
+      limit: 1,
+    );
+    return rows.isNotEmpty;
+  }
+
   Future<List<RunEntry>> getAll() async {
     final db = await database;
     final rows = await db.query(_tableName, orderBy: 'date DESC');
@@ -90,8 +117,12 @@ class DatabaseService {
 
   Future<RunEntry?> getById(int id) async {
     final db = await database;
-    final rows =
-        await db.query(_tableName, where: 'id = ?', whereArgs: [id], limit: 1);
+    final rows = await db.query(
+      _tableName,
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
     return rows.isEmpty ? null : _fromRow(rows.first);
   }
 
@@ -111,19 +142,21 @@ class DatabaseService {
   }
 
   Map<String, dynamic> _toRow(RunEntry entry) => {
-        'kilometers': entry.kilometers,
-        'date': entry.date.toIso8601String(),
-        'notes': entry.notes,
-        'goalId': entry.goalId,
-      };
+    'kilometers': entry.kilometers,
+    'date': entry.date.toIso8601String(),
+    'notes': entry.notes,
+    'goalId': entry.goalId,
+    'healthConnectUuid': entry.healthConnectUuid,
+  };
 
   RunEntry _fromRow(Map<String, dynamic> row) => RunEntry(
-        id: row['id'] as int,
-        kilometers: row['kilometers'] as double,
-        date: DateTime.parse(row['date'] as String),
-        notes: row['notes'] as String?,
-        goalId: row['goalId'] as int?,
-      );
+    id: row['id'] as int,
+    kilometers: row['kilometers'] as double,
+    date: DateTime.parse(row['date'] as String),
+    notes: row['notes'] as String?,
+    goalId: row['goalId'] as int?,
+    healthConnectUuid: row['healthConnectUuid'] as String?,
+  );
 
   Future<void> close() async => _db?.close();
 }

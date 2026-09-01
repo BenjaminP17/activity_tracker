@@ -11,6 +11,7 @@ abstract class RunEntry with _$RunEntry {
     required DateTime date,
     String? notes,
     int? goalId,
+    String? healthConnectUuid,
   }) = _RunEntry;
 
   factory RunEntry.fromJson(Map<String, dynamic> json) =>

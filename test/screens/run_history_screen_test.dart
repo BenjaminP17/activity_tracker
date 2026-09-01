@@ -147,6 +147,52 @@ void main() {
     expect(find.text('Aucune course enregistrée'), findsOneWidget);
   });
 
+  testWidgets('long pressing a run asks for confirmation before deleting it',
+      (WidgetTester tester) async {
+    final Goal goal = buildActiveGoal();
+    final RunEntry run = RunEntry(
+      id: 1,
+      kilometers: 5,
+      date: DateTime.now(),
+      goalId: goal.id,
+    );
+
+    await pumpScreen(tester, activeGoal: goal, runs: [run]);
+
+    await tester.longPress(find.text('5.0 km'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Supprimer la course'), findsOneWidget);
+
+    await tester.tap(find.text('Supprimer'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('5.0 km'), findsNothing);
+    expect(find.text('Aucune course enregistrée'), findsOneWidget);
+  });
+
+  testWidgets('cancelling the confirmation keeps the run',
+      (WidgetTester tester) async {
+    final Goal goal = buildActiveGoal();
+    final RunEntry run = RunEntry(
+      id: 1,
+      kilometers: 5,
+      date: DateTime.now(),
+      goalId: goal.id,
+    );
+
+    await pumpScreen(tester, activeGoal: goal, runs: [run]);
+
+    await tester.longPress(find.text('5.0 km'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Annuler'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Supprimer la course'), findsNothing);
+    expect(find.text('5.0 km'), findsOneWidget);
+  });
+
   testWidgets('the back button returns to the previous screen',
       (WidgetTester tester) async {
     await pumpScreen(tester, activeGoal: buildActiveGoal());
