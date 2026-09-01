@@ -297,4 +297,87 @@ void main() {
       await migratedService.close();
     });
   });
+
+  group('DatabaseService migration v5 -> v6', () {
+    late String dbPath;
+
+    setUp(() {
+      dbPath = join(
+        Directory.systemTemp.path,
+        'migration_v6_test_${DateTime.now().microsecondsSinceEpoch}.db',
+      );
+    });
+
+    tearDown(() async {
+      final File file = File(dbPath);
+      if (file.existsSync()) {
+        file.deleteSync();
+      }
+    });
+
+    test(
+      'adds the completionStatus and completedAt columns, defaulting '
+      'existing goals to active',
+      () async {
+        final Database legacyDb = await openDatabase(
+          dbPath,
+          version: 5,
+          onCreate: (db, _) async {
+            await db.execute('''
+              CREATE TABLE goals (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                name         TEXT    NOT NULL,
+                targetKm     REAL    NOT NULL,
+                targetDate   TEXT    NOT NULL,
+                activityType TEXT    NOT NULL,
+                isActive     INTEGER NOT NULL,
+                createdAt    TEXT    NOT NULL
+              )
+            ''');
+            await db.execute('''
+              CREATE TABLE runs (
+                id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                kilometers REAL    NOT NULL,
+                date      TEXT    NOT NULL,
+                notes     TEXT,
+                goalId    INTEGER REFERENCES goals (id),
+                healthConnectUuid TEXT
+              )
+            ''');
+          },
+        );
+        final int legacyGoalId = await legacyDb.insert('goals', {
+          'name': 'Marathon Challenge',
+          'targetKm': 100.0,
+          'targetDate': DateTime(2026, 12, 31).toIso8601String(),
+          'activityType': 'running',
+          'isActive': 1,
+          'createdAt': DateTime(2026, 1, 1).toIso8601String(),
+        });
+        await legacyDb.close();
+
+        final DatabaseService migratedService = DatabaseService(path: dbPath);
+        final GoalService migratedGoalService = GoalService(migratedService);
+
+        final List<Goal> goals = await migratedGoalService.getAll();
+
+        expect(goals, hasLength(1));
+        expect(goals.single.id, legacyGoalId);
+        expect(goals.single.completionStatus, GoalCompletionStatus.active);
+        expect(goals.single.completedAt, isNull);
+
+        await migratedGoalService.update(
+          goals.single.copyWith(
+            completionStatus: GoalCompletionStatus.completedSuccess,
+            completedAt: DateTime(2026, 6, 1),
+          ),
+        );
+        final Goal updated = (await migratedGoalService.getAll()).single;
+        expect(updated.completionStatus, GoalCompletionStatus.completedSuccess);
+        expect(updated.completedAt, DateTime(2026, 6, 1));
+
+        await migratedService.close();
+      },
+    );
+  });
 }

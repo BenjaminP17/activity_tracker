@@ -71,6 +71,8 @@ class GoalService {
         'activityType': goal.activityType.name,
         'isActive': goal.isActive ? 1 : 0,
         'createdAt': goal.createdAt.toIso8601String(),
+        'completionStatus': goal.completionStatus.name,
+        'completedAt': goal.completedAt?.millisecondsSinceEpoch,
       };
 
   Goal _fromRow(Map<String, Object?> row) => Goal(
@@ -81,5 +83,11 @@ class GoalService {
         activityType: ActivityType.values.byName(row['activityType'] as String),
         isActive: (row['isActive'] as int) == 1,
         createdAt: DateTime.parse(row['createdAt'] as String),
+        completionStatus: GoalCompletionStatus.values.byName(
+          row['completionStatus'] as String? ?? GoalCompletionStatus.active.name,
+        ),
+        completedAt: row['completedAt'] == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(row['completedAt'] as int),
       );
 }

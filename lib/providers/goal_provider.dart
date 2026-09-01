@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/goal.dart';
+import '../services/goal_completion_service.dart';
 import '../services/goal_service.dart';
 import 'run_provider.dart' show databaseServiceProvider;
 
@@ -10,24 +11,22 @@ final Provider<GoalService> goalServiceProvider = Provider<GoalService>(
   (Ref ref) => GoalService(ref.watch(databaseServiceProvider)),
 );
 
-/// Holds the list of goals loaded from the database.
-final AsyncNotifierProvider<GoalListNotifier, List<Goal>> goalListProvider =
-    AsyncNotifierProvider<GoalListNotifier, List<Goal>>(GoalListNotifier.new);
+/// Exposes the [GoalCompletionService] singleton, used to keep each goal's
+/// [GoalCompletionStatus] in sync with its logged runs and deadline.
+final Provider<GoalCompletionService> goalCompletionServiceProvider =
+    Provider<GoalCompletionService>(
+  (Ref ref) => GoalCompletionService(
+    ref.watch(goalServiceProvider),
+    ref.watch(databaseServiceProvider),
+  ),
+);
 
-class GoalListNotifier extends AsyncNotifier<List<Goal>> {
-  @override
-  Future<List<Goal>> build() async {
-    final GoalService service = ref.watch(goalServiceProvider);
-    return service.getAll();
-  }
+/// Which subset of goals [GoalsListScreen] displays.
+enum GoalFilter { active, completed, all }
 
-  /// Reloads the goal list from the database.
-  Future<void> refresh() async {
-    final GoalService service = ref.read(goalServiceProvider);
-    state = const AsyncLoading<List<Goal>>().copyWithPrevious(state);
-    state = await AsyncValue.guard(() => service.getAll());
-  }
-}
+/// The filter currently selected on [GoalsListScreen].
+final StateProvider<GoalFilter> goalFilterProvider =
+    StateProvider<GoalFilter>((Ref ref) => GoalFilter.active);
 
 /// Holds the currently active goal, if any.
 final AsyncNotifierProvider<CurrentGoalNotifier, Goal?> currentGoalProvider =
@@ -71,6 +70,80 @@ class GoalInsertNotifier extends AsyncNotifier<void> {
   /// Recalculates dependent state after a goal has been inserted.
   Future<void> _recalculate() async {
     await ref.read(currentGoalProvider.notifier).refresh();
-    await ref.read(goalListProvider.notifier).refresh();
+    await ref.read(activeGoalsProvider.notifier).refresh();
   }
+}
+
+/// Holds every goal still in progress, after refreshing each goal's
+/// completion status against its logged runs and deadline.
+final AsyncNotifierProvider<ActiveGoalsNotifier, List<Goal>>
+    activeGoalsProvider = AsyncNotifierProvider<ActiveGoalsNotifier, List<Goal>>(
+  ActiveGoalsNotifier.new,
+);
+
+class ActiveGoalsNotifier extends AsyncNotifier<List<Goal>> {
+  @override
+  Future<List<Goal>> build() => _load();
+
+  /// Reloads the active goal list, refreshing statuses first.
+  Future<void> refresh() async {
+    state = const AsyncLoading<List<Goal>>().copyWithPrevious(state);
+    state = await AsyncValue.guard(_load);
+  }
+
+  Future<List<Goal>> _load() async {
+    final List<Goal> goals = await _refreshedGoals(ref);
+    return goals
+        .where(
+          (Goal goal) => goal.completionStatus == GoalCompletionStatus.active,
+        )
+        .toList()
+      ..sort((Goal a, Goal b) => a.targetDate.compareTo(b.targetDate));
+  }
+}
+
+/// Holds every goal that has finished (successfully or not), after
+/// refreshing each goal's completion status against its logged runs and
+/// deadline.
+final AsyncNotifierProvider<CompletedGoalsNotifier, List<Goal>>
+    completedGoalsProvider =
+    AsyncNotifierProvider<CompletedGoalsNotifier, List<Goal>>(
+  CompletedGoalsNotifier.new,
+);
+
+class CompletedGoalsNotifier extends AsyncNotifier<List<Goal>> {
+  @override
+  Future<List<Goal>> build() => _load();
+
+  /// Reloads the completed goal list, refreshing statuses first.
+  Future<void> refresh() async {
+    state = const AsyncLoading<List<Goal>>().copyWithPrevious(state);
+    state = await AsyncValue.guard(_load);
+  }
+
+  Future<List<Goal>> _load() async {
+    final List<Goal> goals = await _refreshedGoals(ref);
+    return goals
+        .where(
+          (Goal goal) => goal.completionStatus != GoalCompletionStatus.active,
+        )
+        .toList()
+      ..sort(
+        (Goal a, Goal b) => (b.completedAt ?? b.targetDate)
+            .compareTo(a.completedAt ?? a.targetDate),
+      );
+  }
+}
+
+/// Refreshes every goal's completion status against its logged runs and
+/// deadline, then returns the resulting goal list.
+Future<List<Goal>> _refreshedGoals(Ref ref) async {
+  final GoalService goalService = ref.watch(goalServiceProvider);
+  final GoalCompletionService completionService =
+      ref.watch(goalCompletionServiceProvider);
+  final List<Goal> goals = await goalService.getAll();
+  for (final Goal goal in goals) {
+    await completionService.updateGoalStatus(goal.id);
+  }
+  return goalService.getAll();
 }

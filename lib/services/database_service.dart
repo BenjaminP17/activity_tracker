@@ -9,7 +9,7 @@ class DatabaseService {
   static const _dbName = 'activity_tracker.db';
   static const _tableName = 'runs';
   static const _goalsTableName = 'goals';
-  static const _dbVersion = 5;
+  static const _dbVersion = 6;
 
   final String? _path;
   Database? _db;
@@ -36,7 +36,9 @@ class DatabaseService {
             targetDate   TEXT    NOT NULL,
             activityType TEXT    NOT NULL,
             isActive     INTEGER NOT NULL,
-            createdAt    TEXT    NOT NULL
+            createdAt    TEXT    NOT NULL,
+            completionStatus TEXT    NOT NULL DEFAULT 'active',
+            completedAt      INTEGER
           )
         ''');
         await db.execute('''
@@ -84,6 +86,14 @@ class DatabaseService {
           await db.execute(
             'CREATE UNIQUE INDEX idx_${_tableName}_health_connect_uuid '
             'ON $_tableName (healthConnectUuid)',
+          );
+        }
+        if (oldVersion < 6) {
+          await db.execute(
+            "ALTER TABLE $_goalsTableName ADD COLUMN completionStatus TEXT NOT NULL DEFAULT 'active'",
+          );
+          await db.execute(
+            'ALTER TABLE $_goalsTableName ADD COLUMN completedAt INTEGER',
           );
         }
       },

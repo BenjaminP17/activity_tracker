@@ -37,6 +37,16 @@ class FakeGoalService extends GoalService {
   }
 
   @override
+  Future<int> update(Goal goal) async {
+    final int index = _goals.indexWhere((Goal g) => g.id == goal.id);
+    if (index == -1) {
+      return 0;
+    }
+    _goals[index] = goal;
+    return 1;
+  }
+
+  @override
   Future<void> setActive(int id) async {
     activatedId = id;
     for (int i = 0; i < _goals.length; i++) {

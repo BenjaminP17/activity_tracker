@@ -2,21 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../models/activity_type.dart';
 import '../models/goal.dart';
 import '../models/run_entry.dart';
 import '../providers/goal_provider.dart';
 import '../providers/run_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
-import '../widgets/app_card.dart';
+import '../widgets/goal_card.dart';
 import 'dashboard_screen.dart';
 import 'onboarding_screen.dart';
 
-/// Lists every challenge whose deadline hasn't passed yet, soonest first.
-/// Tapping a card makes that challenge the active one and pushes the
-/// dashboard on top of this screen, so the system/swipe back gesture
-/// returns here automatically.
+/// Lists the user's challenges, filtered to either the ones still in
+/// progress or the ones already finished. Tapping an in-progress card makes
+/// that challenge the active one and pushes the dashboard on top of this
+/// screen; tapping a finished one shows its final stats.
 class GoalsListScreen extends ConsumerWidget {
   const GoalsListScreen({super.key});
 
@@ -29,7 +28,7 @@ class GoalsListScreen extends ConsumerWidget {
   ) async {
     await ref.read(goalServiceProvider).setActive(id);
     await ref.read(currentGoalProvider.notifier).refresh();
-    await ref.read(goalListProvider.notifier).refresh();
+    await ref.read(activeGoalsProvider.notifier).refresh();
 
     if (!context.mounted) {
       return;
@@ -51,26 +50,56 @@ class GoalsListScreen extends ConsumerWidget {
     );
   }
 
-  List<Goal> _ongoingGoals(List<Goal> goals) {
-    final DateTime today = DateTime.now();
-    final DateTime todayDateOnly = DateTime(today.year, today.month, today.day);
-
-    final List<Goal> ongoing = goals
-        .where((Goal goal) => goal.targetDate.isAfter(todayDateOnly))
-        .toList()
-      ..sort((Goal a, Goal b) => a.targetDate.compareTo(b.targetDate));
-    return ongoing;
-  }
-
   double _totalKmFor(Goal goal, List<RunEntry> runs) {
     return runs
         .where((RunEntry run) => run.goalId == goal.id)
         .fold(0.0, (double sum, RunEntry run) => sum + run.kilometers);
   }
 
+  void _showFinalStats(BuildContext context, Goal goal, List<RunEntry> runs) {
+    final List<RunEntry> goalRuns =
+        runs.where((RunEntry run) => run.goalId == goal.id).toList();
+    final double totalKm =
+        goalRuns.fold(0.0, (double sum, RunEntry run) => sum + run.kilometers);
+    final DateTime? completedAt = goal.completedAt;
+    final int durationDays =
+        completedAt == null ? 0 : completedAt.difference(goal.createdAt).inDays;
+
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: Text(goal.name),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(goal.completionStatus.toLabel()),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '${totalKm.toStringAsFixed(1)} / ${goal.targetKm.toStringAsFixed(1)} km',
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text('Durée : $durationDays jours'),
+            const SizedBox(height: AppSpacing.xs),
+            Text('Nombre de courses : ${goalRuns.length}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Fermer'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<List<Goal>> goalsAsync = ref.watch(goalListProvider);
+    final GoalFilter filter = ref.watch(goalFilterProvider);
+    final bool showCompleted = filter == GoalFilter.completed;
+    final AsyncValue<List<Goal>> goalsAsync =
+        showCompleted ? ref.watch(completedGoalsProvider) : ref.watch(activeGoalsProvider);
     final AsyncValue<List<RunEntry>> runsAsync = ref.watch(runListProvider);
 
     return Scaffold(
@@ -90,124 +119,115 @@ class GoalsListScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: const Text('Créer un défi'),
       ),
-      body: goalsAsync.when(
-        data: (List<Goal> goals) {
-          final List<RunEntry> runs = runsAsync.valueOrNull ?? const [];
-          final List<Goal> ongoing = _ongoingGoals(goals);
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              0,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _FilterButton(
+                    label: 'En cours',
+                    selected: !showCompleted,
+                    onTap: () => ref.read(goalFilterProvider.notifier).state =
+                        GoalFilter.active,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: _FilterButton(
+                    label: 'Terminé',
+                    selected: showCompleted,
+                    onTap: () => ref.read(goalFilterProvider.notifier).state =
+                        GoalFilter.completed,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: goalsAsync.when(
+              data: (List<Goal> goals) {
+                final List<RunEntry> runs = runsAsync.valueOrNull ?? const [];
 
-          if (ongoing.isEmpty) {
-            return const Center(
-              child: Text(
-                'Aucun défi en cours',
-                style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
-              ),
-            );
-          }
+                if (goals.isEmpty) {
+                  return Center(
+                    child: Text(
+                      showCompleted ? 'Aucun défi terminé' : 'Aucun défi en cours',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  );
+                }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            itemCount: ongoing.length,
-            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-            itemBuilder: (BuildContext context, int index) {
-              final Goal goal = ongoing[index];
-              final double totalKm = _totalKmFor(goal, runs);
-              return _GoalCard(
-                goal: goal,
-                totalKm: totalKm,
-                dateFormat: _dateFormat,
-                onTap: () => _selectGoal(context, ref, goal.id),
-              );
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (Object error, StackTrace stackTrace) =>
-            Center(child: Text('Une erreur est survenue: $error')),
+                return ListView.separated(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  itemCount: goals.length,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: AppSpacing.sm),
+                  itemBuilder: (BuildContext context, int index) {
+                    final Goal goal = goals[index];
+                    final double totalKm = _totalKmFor(goal, runs);
+                    return GoalCard(
+                      goal: goal,
+                      totalKm: totalKm,
+                      dateFormat: _dateFormat,
+                      onTap: showCompleted
+                          ? () => _showFinalStats(context, goal, runs)
+                          : () => _selectGoal(context, ref, goal.id),
+                    );
+                  },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (Object error, StackTrace stackTrace) =>
+                  Center(child: Text('Une erreur est survenue: $error')),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _GoalCard extends StatelessWidget {
-  const _GoalCard({
-    required this.goal,
-    required this.totalKm,
-    required this.dateFormat,
+class _FilterButton extends StatelessWidget {
+  const _FilterButton({
+    required this.label,
+    required this.selected,
     required this.onTap,
   });
 
-  final Goal goal;
-  final double totalKm;
-  final DateFormat dateFormat;
+  final String label;
+  final bool selected;
   final VoidCallback onTap;
-
-  double get _progress =>
-      goal.targetKm <= 0 ? 0 : (totalKm / goal.targetKm).clamp(0, 1);
-
-  int get _daysRemaining {
-    final DateTime today = DateTime.now();
-    final DateTime todayDateOnly = DateTime(today.year, today.month, today.day);
-    final DateTime target =
-        DateTime(goal.targetDate.year, goal.targetDate.month, goal.targetDate.day);
-    return target.difference(todayDateOnly).inDays;
-  }
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  goal.name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.text,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Row(
-            children: [
-              goal.activityType.toIcon(),
-              const SizedBox(width: AppSpacing.xs),
-              Text(
-                goal.activityType.toLabel(),
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: _progress,
-              minHeight: 8,
-              backgroundColor: AppColors.border,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+    return Material(
+      color: selected ? AppColors.primary : AppColors.surface,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: selected ? Colors.white : AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            '${totalKm.toStringAsFixed(1)} / ${goal.targetKm.toStringAsFixed(1)} km',
-            style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            '${dateFormat.format(goal.targetDate)} · $_daysRemaining jours restants',
-            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-          ),
-        ],
+        ),
       ),
     );
   }

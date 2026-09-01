@@ -19,6 +19,9 @@ void main() {
     required double targetKm,
     required DateTime targetDate,
     bool isActive = false,
+    GoalCompletionStatus completionStatus = GoalCompletionStatus.active,
+    DateTime? completedAt,
+    DateTime? createdAt,
   }) =>
       Goal(
         id: id,
@@ -27,7 +30,9 @@ void main() {
         targetDate: targetDate,
         activityType: ActivityType.running,
         isActive: isActive,
-        createdAt: DateTime.now(),
+        createdAt: createdAt ?? DateTime.now(),
+        completionStatus: completionStatus,
+        completedAt: completedAt,
       );
 
   /// Pumps a host screen with a button that pushes [GoalsListScreen],
@@ -175,5 +180,67 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(OnboardingScreen), findsOneWidget);
+  });
+
+  testWidgets(
+      'the Terminé filter shows finished goals with a status badge, '
+      'excluded from En cours', (WidgetTester tester) async {
+    final DateTime now = DateTime.now();
+    final Goal completed = buildGoal(
+      id: 1,
+      name: 'Défi réussi',
+      targetKm: 50,
+      targetDate: now.subtract(const Duration(days: 10)),
+      completionStatus: GoalCompletionStatus.completedSuccess,
+      completedAt: now.subtract(const Duration(days: 5)),
+      createdAt: now.subtract(const Duration(days: 20)),
+    );
+    final Goal ongoing = buildGoal(
+      id: 2,
+      name: 'Défi en cours',
+      targetKm: 50,
+      targetDate: now.add(const Duration(days: 5)),
+    );
+
+    await pumpScreen(tester, goals: [completed, ongoing]);
+
+    expect(find.text('Défi en cours'), findsOneWidget);
+    expect(find.text('Défi réussi'), findsNothing);
+
+    await tester.tap(find.text('Terminé'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Défi réussi'), findsOneWidget);
+    expect(find.text('Défi en cours'), findsNothing);
+    expect(find.text('✅ Réussi'), findsOneWidget);
+  });
+
+  testWidgets('tapping a completed goal shows its final stats',
+      (WidgetTester tester) async {
+    final DateTime now = DateTime.now();
+    final Goal completed = buildGoal(
+      id: 1,
+      name: 'Défi réussi',
+      targetKm: 50,
+      targetDate: now.subtract(const Duration(days: 10)),
+      completionStatus: GoalCompletionStatus.completedSuccess,
+      completedAt: now.subtract(const Duration(days: 5)),
+      createdAt: now.subtract(const Duration(days: 20)),
+    );
+
+    await pumpScreen(
+      tester,
+      goals: [completed],
+      runs: [RunEntry(id: 1, kilometers: 50, date: now, goalId: 1)],
+    );
+
+    await tester.tap(find.text('Terminé'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Défi réussi'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nombre de courses : 1'), findsOneWidget);
+    expect(find.text('50.0 / 50.0 km'), findsWidgets);
   });
 }
