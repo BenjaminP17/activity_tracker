@@ -134,10 +134,23 @@ lib/
 
 ### Architecture
 
+**Multi-activity gamification platform** — See `PROJECT_ARCHITECTURE.md` for complete Mermaid diagram.
+
+**Core Principles:**
+
 - Separation of concerns: models ≠ services ≠ providers
 - Services: business logic + persistence, no Riverpod
 - Providers: state management, data exposure
 - No complex UI logic outside screens
+
+**Key Components:**
+
+- **Activities System:** Extensible (Running, Reading, Meditation, etc.)
+- **Goal Types:** Distance, Frequency, Race, Time, Completion (per activity)
+- **Trackers:** Pluggable automation (Health Connect, APIs, manual fallback)
+- **Database:** SQLite v6+ with flexible schema for multi-activity support
+- **Dashboard:** Real-time stats, streaks, gamification
+- **Gamification:** Badges, achievements, consistency tracking
 
 ### Riverpod Best Practices
 
